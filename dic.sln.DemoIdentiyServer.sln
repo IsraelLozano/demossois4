@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30711.63
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dic.sso.identityserver.oauth", "dic.sso.identityserver.oauth\dic.sso.identityserver.oauth.csproj", "{ACC96005-3DA7-4D47-9143-140254B0299E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dic.sso.identityserver.oauth", "dic.sso.identityserver.oauth\dic.sso.identityserver.oauth.csproj", "{ACC96005-3DA7-4D47-9143-140254B0299E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dic.sso.webapi.company", "dic.sso.webapi.company\dic.sso.webapi.company.csproj", "{3309FA34-5FE2-40F2-A147-C5A773D39711}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dic.sso.webapi.company", "dic.sso.webapi.company\dic.sso.webapi.company.csproj", "{3309FA34-5FE2-40F2-A147-C5A773D39711}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dic.sso.webapp.clienteweb", "dic.sso.webapp.clienteweb\dic.sso.webapp.clienteweb.csproj", "{B2E2D55E-7EC9-4B4F-9BD2-063D0F498747}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dic.sso.webapp.clienteweb", "dic.sso.webapp.clienteweb\dic.sso.webapp.clienteweb.csproj", "{B2E2D55E-7EC9-4B4F-9BD2-063D0F498747}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,8 +1,12 @@
+using dic.sso.webapp.clienteweb.Services;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
@@ -16,6 +20,7 @@ namespace dic.sso.webapp.clienteweb
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+            JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
         }
 
         public IConfiguration Configuration { get; }
@@ -23,14 +28,19 @@ namespace dic.sso.webapp.clienteweb
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllersWithViews();
-            //JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddScoped<ICompanyHttpClient, CompanyHttpClient>();
+
+            JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
             services.AddAuthentication(opt =>
             {
                 opt.DefaultScheme = "Cookies";
                 opt.DefaultChallengeScheme = "oidc";
             })
-            .AddCookie("Cookies")
+            .AddCookie("Cookies", opt =>
+            {
+                opt.AccessDeniedPath = "/Account/AccessDenied";
+            })
             .AddOpenIdConnect("oidc", opt =>
              {
                  opt.SignInScheme = "Cookies";
@@ -40,7 +50,44 @@ namespace dic.sso.webapp.clienteweb
                  opt.SaveTokens = true;
                  opt.ClientSecret = "MVCSecret";
                  opt.RequireHttpsMetadata = false;
+                 opt.GetClaimsFromUserInfoEndpoint = true;
+
+                 opt.ClaimActions.DeleteClaim("sid");
+                 opt.ClaimActions.DeleteClaim("idp");
+                 // or
+                 //opt.ClaimActions.DeleteClaims(new string[] { "sid", "idp" });
+                 opt.Scope.Add("address");
+                 //opt.Scope.Add("email");
+                 //opt.ClaimActions.MapUniqueJsonKey("email", "email");
+
+                 opt.Scope.Add("roles");
+                 opt.ClaimActions.MapUniqueJsonKey("role", "role");
+                 opt.TokenValidationParameters = new TokenValidationParameters
+                 {
+                     RoleClaimType = "role",
+                     NameClaimType = "email"
+                 };
+
+                 opt.Scope.Add("companyApi");
+                 opt.Scope.Add("position");
+                 opt.Scope.Add("country");
+                 opt.ClaimActions.MapUniqueJsonKey("position", "position");
+                 opt.ClaimActions.MapUniqueJsonKey("country", "country");
+
              });
+
+
+            services.AddAuthorization(authOpt =>
+            {
+                authOpt.AddPolicy("CanCreateAndModifyData", policyBuilder =>
+                {
+                    policyBuilder.RequireAuthenticatedUser();
+                    policyBuilder.RequireClaim("position", "Administrator");
+                    policyBuilder.RequireClaim("country", "USA");
+                });
+            });
+
+            services.AddControllersWithViews();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

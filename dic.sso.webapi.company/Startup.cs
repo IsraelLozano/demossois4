@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
+
 namespace dic.sso.webapi.company
 {
     public class Startup
@@ -37,8 +38,18 @@ namespace dic.sso.webapi.company
             //        };
             //    });
 
+            //        services.AddAuthentication("Bearer")
+            //.AddJwtBearer("Bearer", opt =>
+            //{
+            //    opt.RequireHttpsMetadata = false;
+            //    opt.Authority = "https://localhost:5005";
+            //    opt.Audience = "companyApi";
+            //});
+            services.AddAutoMapper(typeof(Startup));
+
+
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            .AddJwtBearer(o =>
+            .AddJwtBearer("Bearer", o =>
             {
                 o.Authority = "http://localhost:5001";
                 o.RequireHttpsMetadata = false;

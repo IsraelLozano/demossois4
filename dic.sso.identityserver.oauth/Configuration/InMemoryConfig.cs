@@ -14,14 +14,20 @@ namespace dic.sso.identityserver.oauth.Configuration
         public static IEnumerable<IdentityResource> GetIdentityResources() => new List<IdentityResource>
         {
             new IdentityResources.OpenId(),
-            new IdentityResources.Profile()
+            new IdentityResources.Profile(),
+            new IdentityResources.Email(),
+            new IdentityResources.Address(),
+            new IdentityResource("roles", "User role(s)", new List<string> { "role" }),
+            new IdentityResource("position", "Your position", new List<string> { "position" }),
+            new IdentityResource("country", "Your country", new List<string> { "country" })
         };
 
         public static IEnumerable<ApiResource> GetApiResources() => new List<ApiResource>
         {
             new ApiResource("companyApi", "CompanyEmployee API")
             {
-                Scopes = { "companyApi" }
+                Scopes = { "companyApi" },
+                UserClaims = new[] {"email" }
             }
         };
 
@@ -39,7 +45,12 @@ namespace dic.sso.identityserver.oauth.Configuration
                 Claims = new List<Claim>
                 {
                     new Claim("given_name", "Mick"),
-                    new Claim("family_name", "Mining")
+                    new Claim("family_name", "Mining"),
+                    new Claim("address", "Sunny Street 4"),
+                    new Claim("role", "Admin"),
+                    new Claim("position", "Administrator"),
+                    new Claim("country", "USA"),
+                    new Claim("email", "camoens1@outlook.com"),
                 }
             },
             new TestUser
@@ -50,7 +61,13 @@ namespace dic.sso.identityserver.oauth.Configuration
                 Claims = new List<Claim>
                 {
                     new Claim("given_name", "Jane"),
-                    new Claim("family_name", "Downing")
+                    new Claim("family_name", "Downing"),
+                    new Claim("address", "Long Avenue 289"),
+                    new Claim("role", "Visitor"),
+                    new Claim("position", "Viewer"),
+                    new Claim("country", "USA"),
+                    new Claim("email", "camoens1@gmail.com"),
+
                 }
             }
         };
@@ -72,9 +89,20 @@ namespace dic.sso.identityserver.oauth.Configuration
                 AllowedGrantTypes = GrantTypes.Hybrid,
                 RedirectUris = new List<string>{ "http://localhost:5003/signin-oidc" },
                 RequirePkce = false,
-                AllowedScopes = { IdentityServerConstants.StandardScopes.OpenId, IdentityServerConstants.StandardScopes.Profile },
+                AllowedScopes =
+                {
+                    IdentityServerConstants.StandardScopes.OpenId,
+                    IdentityServerConstants.StandardScopes.Profile,
+                    IdentityServerConstants.StandardScopes.Email,
+                    IdentityServerConstants.StandardScopes.Address,
+                    "roles",
+                    "companyApi",
+                    "position",
+                    "country"
+                },
                 ClientSecrets = { new Secret("MVCSecret".Sha512()) },
-                PostLogoutRedirectUris = new List<string> { "http://localhost:5003/signout-callback-oidc" }
+                PostLogoutRedirectUris = new List<string> { "http://localhost:5003/signout-callback-oidc" },
+                RequireConsent = true
         }
         };
 
