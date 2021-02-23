@@ -1,13 +1,16 @@
 using dic.sso.identityserver.oauth.Configuration;
+using dic.sso.identityserver.oauth.Repositories;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Reflection;
@@ -39,6 +42,9 @@ namespace dic.sso.identityserver.oauth
 
         public void ConfigureServices(IServiceCollection services)
         {
+            //services.AddTransient<IUserRepository, UserRepository>();
+            //services.AddSingleton<Func<IDbConnection>>(() => new SqlConnection());
+
             var migrationAssembly = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
 
             //services.AddIdentityServer(options =>
@@ -47,6 +53,7 @@ namespace dic.sso.identityserver.oauth
             //})
             services.AddIdentityServer()
                 .AddDeveloperSigningCredential() //not something we want to use in a production environment;
+                //.AddResourceOwnerValidator<ResourceOwnerPasswordValidator>()
                 .AddTestUsers(InMemoryConfig.GetUsers())
                 //.AddInMemoryIdentityResources(InMemoryConfig.GetIdentityResources())
                 //.AddInMemoryClients(InMemoryConfig.GetClients())
