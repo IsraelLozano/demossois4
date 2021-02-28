@@ -42,10 +42,21 @@ namespace dic.sso.identityserver.oauth.Repositories
                     new { userId = user.Id });
             }
         }
+
+        public async Task AddAsync(User user)
+        {
+            using (var connection = OpenConnection())
+            {
+                await connection.ExecuteAsync("insert into [Users]([Id], [Username], [Password]) values(@userId, @username, @password); ",
+                    new { userId = user.Id, username = user.Username, password = user.Password });
+            }
+        }
+
     }
 
     public interface IUserRepository
     {
+        Task AddAsync(User user);
         Task<IEnumerable<FriendRelation>> GetFriendsForAsync(User user);
         Task<User> GetAsync(string username, string password);
         Task<User> GetAsync(string username);

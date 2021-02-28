@@ -1,3 +1,5 @@
+using dic.sso.identityserver.oauth.Configuration;
+using dic.sso.identityserver.oauth.Models;
 using IdentityModel;
 using IdentityServer4;
 using IdentityServer4.Events;
@@ -21,26 +23,30 @@ namespace IdentityServerHost.Quickstart.UI
     [AllowAnonymous]
     public class ExternalController : Controller
     {
-        private readonly TestUserStore _users;
+        //private readonly TestUserStore _users;
         private readonly IIdentityServerInteractionService _interaction;
         private readonly IClientStore _clientStore;
         private readonly ILogger<ExternalController> _logger;
         private readonly IEventService _events;
+
+        private readonly IUserValidator userValidator;
 
         public ExternalController(
             IIdentityServerInteractionService interaction,
             IClientStore clientStore,
             IEventService events,
             ILogger<ExternalController> logger,
-            TestUserStore users = null)
+             //TestUserStore users = null,
+             IUserValidator userValidator)
         {
             // if the TestUserStore is not in DI, then we'll just use the global users collection
             // this is where you would plug in your own custom identity management library (e.g. ASP.NET Identity)
-            _users = users ?? new TestUserStore(TestUsers.Users);
+            //_users = users ?? new TestUserStore(TestUsers.Users);
 
             _interaction = interaction;
             _clientStore = clientStore;
             _logger = logger;
+            this.userValidator = userValidator;
             _events = events;
         }
 
@@ -58,20 +64,20 @@ namespace IdentityServerHost.Quickstart.UI
                 // user might have clicked on a malicious link - should be logged
                 throw new Exception("invalid return URL");
             }
-            
+
             // start challenge and roundtrip the return URL and scheme 
             var props = new AuthenticationProperties
             {
-                RedirectUri = Url.Action(nameof(Callback)), 
+                RedirectUri = Url.Action(nameof(Callback)),
                 Items =
                 {
-                    { "returnUrl", returnUrl }, 
+                    { "returnUrl", returnUrl },
                     { "scheme", scheme },
                 }
             };
 
             return Challenge(props, scheme);
-            
+
         }
 
         /// <summary>
@@ -84,7 +90,7 @@ namespace IdentityServerHost.Quickstart.UI
             var result = await HttpContext.AuthenticateAsync(IdentityServerConstants.ExternalCookieAuthenticationScheme);
             if (result?.Succeeded != true)
             {
-                throw new Exception("External authentication error");
+                throw new Exception("Error de autenticación externa");
             }
 
             if (_logger.IsEnabled(LogLevel.Debug))
@@ -92,6 +98,7 @@ namespace IdentityServerHost.Quickstart.UI
                 var externalClaims = result.Principal.Claims.Select(c => $"{c.Type}: {c.Value}");
                 _logger.LogDebug("External claims: {@claims}", externalClaims);
             }
+
 
             // lookup our user and external provider info
             var (user, provider, providerUserId, claims) = FindUserFromExternalProvider(result);
@@ -109,9 +116,9 @@ namespace IdentityServerHost.Quickstart.UI
             var additionalLocalClaims = new List<Claim>();
             var localSignInProps = new AuthenticationProperties();
             ProcessLoginCallback(result, additionalLocalClaims, localSignInProps);
-            
+
             // issue authentication cookie for user
-            var isuser = new IdentityServerUser(user.SubjectId)
+            var isuser = new IdentityServerUser(user.Id.ToString())
             {
                 DisplayName = user.Username,
                 IdentityProvider = provider,
@@ -128,7 +135,7 @@ namespace IdentityServerHost.Quickstart.UI
 
             // check if external login is in the context of an OIDC request
             var context = await _interaction.GetAuthorizationContextAsync(returnUrl);
-            await _events.RaiseAsync(new UserLoginSuccessEvent(provider, providerUserId, user.SubjectId, user.Username, true, context?.Client.ClientId));
+            await _events.RaiseAsync(new UserLoginSuccessEvent(provider, providerUserId, user.Id.ToString(), user.Username, true, context?.Client.ClientId));
 
             if (context != null)
             {
@@ -143,7 +150,7 @@ namespace IdentityServerHost.Quickstart.UI
             return Redirect(returnUrl);
         }
 
-        private (TestUser user, string provider, string providerUserId, IEnumerable<Claim> claims) FindUserFromExternalProvider(AuthenticateResult result)
+        private (User user, string provider, string providerUserId, IEnumerable<Claim> claims) FindUserFromExternalProvider(AuthenticateResult result)
         {
             var externalUser = result.Principal;
 
@@ -162,14 +169,17 @@ namespace IdentityServerHost.Quickstart.UI
             var providerUserId = userIdClaim.Value;
 
             // find external user
-            var user = _users.FindByExternalProvider(provider, providerUserId);
-
+            var user = userValidator.FindByExternalProviderAsync(provider, providerUserId).Result;
+            //if (user == null)
+            //{
+            //    user = userValidator.AutoProvisionUserAsync(provider, providerUserId, claims).Result;
+            //}
             return (user, provider, providerUserId, claims);
         }
 
-        private TestUser AutoProvisionUser(string provider, string providerUserId, IEnumerable<Claim> claims)
+        private User AutoProvisionUser(string provider, string providerUserId, IEnumerable<Claim> claims)
         {
-            var user = _users.AutoProvisionUser(provider, providerUserId, claims.ToList());
+            var user = userValidator.AutoProvisionUserAsync(provider, providerUserId, claims.ToList()).Result;
             return user;
         }
 

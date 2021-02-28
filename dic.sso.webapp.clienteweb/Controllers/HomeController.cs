@@ -10,6 +10,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -31,32 +32,61 @@ namespace dic.sso.webapp.clienteweb.Controllers
             _companyHttpClient = companyHttpClient;
         }
 
+
+
         public async Task<IActionResult> Index()
         {
-            //var lista = new List<CompanyViewModel>
+            if (User.Identity.IsAuthenticated)
+            {
+                string accessToken = await HttpContext.GetTokenAsync("access_token");
+
+                // if you need to check the access token expiration time, use this value
+                // provided on the authorization response and stored.
+                // do not attempt to inspect/decode the access token
+                DateTime accessTokenExpiresAt = DateTime.Parse(
+                    await HttpContext.GetTokenAsync("expires_at"),
+                    CultureInfo.InvariantCulture,
+                    DateTimeStyles.RoundtripKind);
+
+                string idToken = await HttpContext.GetTokenAsync("id_token");
+
+                // Now you can use them. For more info on when and how to use the
+                // access_token and id_token, see https://auth0.com/docs/tokens
+            }
+
+
+            string userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value;
+
+            // Get the name
+            string name = User.Claims.FirstOrDefault(c => c.Type == "name")?.Value;
+
+
+            var lista = new List<CompanyViewModel>
+            {
+                new CompanyViewModel{ Id = Guid.NewGuid(), Name="Nombre 1", FullAddress = "xxxxxx" },
+                new CompanyViewModel{ Id = Guid.NewGuid(), Name="Nombre 2", FullAddress = "qweqweqweqweqwe" }
+            };
+
+            return View(lista);
+
+            //var httpClient = await _companyHttpClient.GetClient();
+
+            //var response = await httpClient.GetAsync("api/companies").ConfigureAwait(false);
+
+            //if (response.IsSuccessStatusCode)
             //{
-            //    new CompanyViewModel{ Id = Guid.NewGuid(), Name="Nombre 1", FullAddress = "xxxxxx" },
-            //    new CompanyViewModel{ Id = Guid.NewGuid(), Name="Nombre 2", FullAddress = "qweqweqweqweqwe" }
-            //};
+            //    var companiesString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
-            var httpClient = await _companyHttpClient.GetClient();
+            //    var companyViewModel = JsonConvert.DeserializeObject<List<CompanyViewModel>>(companiesString).ToList();
 
-            var response = await httpClient.GetAsync("api/companies").ConfigureAwait(false);
+            //    return View(companyViewModel);
+            //}
+            //else if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
+            //{
+            //    return RedirectToAction("AccessDenied", "Account");
+            //}
 
-            if (response.IsSuccessStatusCode)
-            {
-                var companiesString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-
-                var companyViewModel = JsonConvert.DeserializeObject<List<CompanyViewModel>>(companiesString).ToList();
-
-                return View(companyViewModel);
-            }
-            else if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
-            {
-                return RedirectToAction("AccessDenied", "Account");
-            }
-            
-            throw new Exception($"Problem with fetching data from the API: {response.ReasonPhrase}");
+            //throw new Exception($"Problem with fetching data from the API: {response.ReasonPhrase}");
 
             //return View(lista);
         }

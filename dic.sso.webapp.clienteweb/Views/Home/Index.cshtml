@@ -1,5 +1,7 @@
-﻿@using Microsoft.AspNetCore.Authorization
-@inject IAuthorizationService AuthorizationService
+﻿@using Microsoft.AspNetCore.Authentication
+
+@*@using Microsoft.AspNetCore.Authorization
+    @inject IAuthorizationService AuthorizationService*@
 
 @model IEnumerable<CompanyViewModel>
 
@@ -7,12 +9,16 @@
     ViewData["Title"] = "Home Page";
 }
 
-@if ((await AuthorizationService.AuthorizeAsync(User, "CanCreateAndModifyData")).Succeeded)
-{
-    <p>
-        <a asp-action="Create">Create New</a>
-    </p>
-}
+@*@if ((await AuthorizationService.AuthorizeAsync(User, "CanCreateAndModifyData")).Succeeded)
+    {
+        <p>
+            <a asp-action="Create">Create New</a>
+        </p>
+    }*@
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
 
 @*@if (User.IsInRole("Admin"))
     {
@@ -20,6 +26,32 @@
             <a asp-action="Create">Create New</a>
         </p>
     }*@
+
+
+<div>
+    <strong>id_token</strong>
+    <span>@await ViewContext.HttpContext.GetTokenAsync("id_token")</span>
+</div>
+
+<div>
+    <strong>access_token</strong>
+    <span>@await ViewContext.HttpContext.GetTokenAsync("access_token")</span>
+</div>
+
+<div>
+    <strong>refresh_token</strong>
+    <span>@await ViewContext.HttpContext.GetTokenAsync("refresh_token")</span>
+</div>
+
+
+@foreach (var claim in User.Claims)
+{
+    <div>
+        <strong>@claim.Type: </strong>
+        <span>@claim.Value</span>
+    </div>
+}
+
 
 
 <table class="table table-responsive table-striped">
@@ -59,14 +91,20 @@
                         </td>
                     }*@
 
-                @if ((await AuthorizationService.AuthorizeAsync(User, "CanCreateAndModifyData")).Succeeded)
-                {
-                    <td>
-                        @Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }) |
-                        @Html.ActionLink("Details", "Details", new { /* id=item.PrimaryKey */ }) |
-                        @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })
-                    </td>
-                }
+                <td>
+                    @Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }) |
+                    @Html.ActionLink("Details", "Details", new { /* id=item.PrimaryKey */ }) |
+                    @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })
+                </td>
+
+                @*@if ((await AuthorizationService.AuthorizeAsync(User, "CanCreateAndModifyData")).Succeeded)
+                    {
+                        <td>
+                            @Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }) |
+                            @Html.ActionLink("Details", "Details", new { /* id=item.PrimaryKey */ }) |
+                            @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })
+                        </td>
+                    }*@
             </tr>
         }
     </tbody>

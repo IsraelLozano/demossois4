@@ -1,5 +1,6 @@
 using dic.sso.identityserver.oauth.Configuration;
 using dic.sso.identityserver.oauth.Repositories;
+using IdentityServer4;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -42,8 +43,9 @@ namespace dic.sso.identityserver.oauth
 
         public void ConfigureServices(IServiceCollection services)
         {
-            //services.AddTransient<IUserRepository, UserRepository>();
-            //services.AddSingleton<Func<IDbConnection>>(() => new SqlConnection());
+            services.AddTransient<IUserValidator, UserValidator>();
+            services.AddTransient<IUserRepository, UserRepository>();
+            services.AddSingleton<Func<IDbConnection>>(() => new SqlConnection(configuration.GetConnectionString("sqlConnectionNet")));
 
             var migrationAssembly = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
 
@@ -53,8 +55,8 @@ namespace dic.sso.identityserver.oauth
             //})
             services.AddIdentityServer()
                 .AddDeveloperSigningCredential() //not something we want to use in a production environment;
-                //.AddResourceOwnerValidator<ResourceOwnerPasswordValidator>()
-                .AddTestUsers(InMemoryConfig.GetUsers())
+                .AddResourceOwnerValidator<ResourceOwnerPasswordValidator>()
+                //.AddTestUsers(InMemoryConfig.GetUsers())
                 //.AddInMemoryIdentityResources(InMemoryConfig.GetIdentityResources())
                 //.AddInMemoryClients(InMemoryConfig.GetClients())
                 //.AddInMemoryApiScopes(InMemoryConfig.GetApiScopes())
@@ -70,7 +72,15 @@ namespace dic.sso.identityserver.oauth
                         sql => sql.MigrationsAssembly(migrationAssembly));
                 });
 
-
+            services.AddAuthentication()
+                .AddGoogle("Google", options =>
+                {
+                    
+                    options.SignInScheme = IdentityServerConstants.ExternalCookieAuthenticationScheme;
+                  
+                    options.ClientId = "951740506533-fijqqu8rih4m7b4pdgp4s3n79knbjt8e.apps.googleusercontent.com";
+                    options.ClientSecret = "vM9LUI2817Hmh7u6g_ZNdE0V";
+                });
 
             services.AddControllersWithViews();
 
@@ -93,10 +103,12 @@ namespace dic.sso.identityserver.oauth
             //    await next();
             //});
             app.UseStaticFiles();
+
             app.UseRouting();
 
             app.UseIdentityServer();
 
+            //app.UseGoogleAuthentication();
 
             app.UseAuthorization();
             app.UseEndpoints(endpoints =>
