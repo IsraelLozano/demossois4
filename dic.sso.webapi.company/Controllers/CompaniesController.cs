@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace dic.sso.webapi.company.Controllers
 {
-    [Route("api/companies")]
+    [Route("api/[controller]")]
     [ApiController]
     public class CompaniesController : ControllerBase
     {
@@ -20,10 +20,19 @@ namespace dic.sso.webapi.company.Controllers
             this.mapper = mapper;
         }
 
+        [Authorize]
+        [HttpGet("GetPrivado")]
+        public IActionResult Privacy()
+        {
+            var claims = User.Claims.Select(c => new { c.Type, c.Value }).ToList();
+
+            return Ok(claims);
+        }
+
 
         [Authorize]
-        [HttpGet]
-        public IActionResult GetCompanies()
+        [HttpGet("GetEmpresas")]
+        public IActionResult ListarEmpresas()
         {
             try
             {

@@ -102,8 +102,29 @@ namespace dic.sso.identityserver.oauth.Configuration
                 },
                 ClientSecrets = { new Secret("MVCSecret".Sha512()) },
                 PostLogoutRedirectUris = new List<string> { "http://localhost:5003/signout-callback-oidc" },
-                RequireConsent = true
-        }
+                RequireConsent = true,
+            },
+            new Client
+            {
+                ClientName = "Angular-Client",
+                ClientId = "angular-client",
+                AllowedGrantTypes = GrantTypes.Code,
+                RedirectUris = new List<string>{ "http://localhost:4200/signin-callback",  "http://localhost:4200/assets/silent-callback.html"  },
+                RequirePkce = true,
+                AllowAccessTokensViaBrowser = true,
+                AllowedScopes =
+                {
+                    IdentityServerConstants.StandardScopes.OpenId,
+                    IdentityServerConstants.StandardScopes.Profile,
+                    "companyApi",
+                },
+                AllowedCorsOrigins =  { "http://localhost:4200"},
+                RequireClientSecret = false,
+                //ClientSecrets = { new Secret("MVCSecret".Sha512()) },
+                PostLogoutRedirectUris = new List<string>{ "http://localhost:4200/signout-callback" },
+                RequireConsent = false,
+                AccessTokenLifetime = 600,
+            }
         };
 
 

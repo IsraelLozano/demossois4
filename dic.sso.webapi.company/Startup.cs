@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -45,6 +46,15 @@ namespace dic.sso.webapi.company
             //    opt.Authority = "https://localhost:5005";
             //    opt.Audience = "companyApi";
             //});
+
+            services.AddCors(options =>
+            {
+                options.AddPolicy("CorsPolicy", builder =>
+                    builder.AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader());
+            });
+
             services.AddAutoMapper(typeof(Startup));
 
 
@@ -71,6 +81,12 @@ namespace dic.sso.webapi.company
             {
                 app.UseDeveloperExceptionPage();
             }
+            app.UseCors("CorsPolicy");
+
+            app.UseForwardedHeaders(new ForwardedHeadersOptions
+            {
+                ForwardedHeaders = ForwardedHeaders.All
+            });
 
             app.UseRouting();
 

@@ -8,8 +8,8 @@ using System.Threading.Tasks;
 
 namespace dic.sso.webapi.company.Controllers
 {
-    [ApiController]
     [Route("api/[controller]")]
+    [ApiController]
     //[Authorize]
     public class WeatherForecastController : ControllerBase
     {
